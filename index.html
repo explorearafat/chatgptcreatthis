@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#05060a">
+<title>NEXORA — Build What Comes Next</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root{
+--bg:#05060a;
+--panel:rgba(255,255,255,.035);
+--line:rgba(255,255,255,.09);
+--text:#f7f8fb;
+--muted:#858d9f;
+--blue:#6688ff;
+--purple:#a36cff;
+--cyan:#62eaff;
+--max:1240px
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
+body.loading{overflow:hidden}
+a{text-decoration:none;color:inherit}
+button{font:inherit}
+
+#loader{
+position:fixed;
+inset:0;
+z-index:9999;
+background:#030408;
+display:grid;
+place-items:center;
+transition:opacity .8s ease,visibility .8s ease
+}
+
+#loader.hide{
+opacity:0;
+visibility:hidden;
+pointer-events:none
+}
+
+.loader-content{text-align:center}
+.loader-logo{font-size:28px;font-weight:800;letter-spacing:.2em}
+.loader-sub{font-size:9px;color:#667084;letter-spacing:.18em;margin-top:18px}
+.loader-line{width:180px;height:2px;background:#171b25;margin:22px auto;overflow:hidden}
+.loader-progress{
+height:100%;
+width:0;
+background:linear-gradient(90deg,var(--blue),var(--purple),var(--cyan));
+animation:loaderProgress 1.4s ease forwards
+}
+
+@keyframes loaderProgress{to{width:100%}}
+
+.announcement{
+height:34px;
+display:grid;
+place-items:center;
+font-size:10px;
+color:#9da8bd;
+border-bottom:1px solid var(--line);
+background:linear-gradient(90deg,rgba(80,110,255,.08),rgba(160,100,255,.1),rgba(70,220,255,.07))
+}
+
+.announcement strong{color:#fff;margin-left:5px}
+
+.nav{
+position:fixed;
+z-index:100;
+top:45px;
+left:50%;
+transform:translateX(-50%);
+width:min(calc(100% - 30px),1180px);
+border:1px solid var(--line);
+border-radius:18px;
+background:rgba(6,8,13,.6);
+backdrop-filter:blur(20px);
+transition:.35s
+}
+
+.nav.scrolled{
+background:rgba(6,8,13,.93);
+box-shadow:0 20px 60px rgba(0,0,0,.35)
+}
+
+.nav-inner{
+height:65px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:0 20px
+}
+
+.logo{
+display:flex;
+align-items:center;
+gap:10px;
+font-size:13px;
+font-weight:800;
+letter-spacing:.16em
+}
+
+.logo-mark{
+width:24px;
+height:24px;
+border:1px solid #8099ff;
+border-radius:7px;
+transform:rotate(45deg);
+position:relative;
+box-shadow:0 0 25px rgba(90,120,255,.35)
+}
+
+.logo-mark:before{
+content:"";
+position:absolute;
+width:7px;
+height:7px;
+left:8px;
+top:8px;
+background:linear-gradient(135deg,var(--cyan),var(--purple));
+border-radius:2px
+}
+
+.nav-links{
+display:flex;
+gap:30px
+}
+
+.nav-links a{
+font-size:12px;
+color:#969eaf;
+transition:.25s;
+position:relative
+}
+
+.nav-links a:hover,.nav-links a.active{color:#fff}
+
+.nav-links a:after{
+content:"";
+position:absolute;
+width:0;
+height:1px;
+background:var(--cyan);
+left:50%;
+bottom:-8px;
+transform:translateX(-50%);
+transition:.25s
+}
+
+.nav-links a:hover:after,.nav-links a.active:after{width:18px}
+
+.btn{
+position:relative;
+display:inline-flex;
+align-items:center;
+justify-content:center;
+gap:9px;
+padding:14px 22px;
+border-radius:12px;
+border:1px solid rgba(255,255,255,.13);
+font-size:12px;
+font-weight:700;
+cursor:pointer;
+transition:transform .25s,box-shadow .25s,background .25s;
+overflow:hidden
+}
+
+.btn:before{
+content:"";
+position:absolute;
+inset:0;
+background:linear-gradient(110deg,transparent,rgba(255,255,255,.2),transparent);
+transform:translateX(-120%);
+transition:.65s
+}
+
+.btn:hover:before{transform:translateX(120%)}
+
+.btn-primary{
+background:#f6f7fb;
+color:#05060a;
+box-shadow:0 8px 30px rgba(255,255,255,.08)
+}
+
+.btn-primary:hover{
+box-shadow:0 15px 50px rgba(105,130,255,.3)
+}
+
+.btn-dark{
+background:rgba(255,255,255,.04);
+color:#fff
+}
+
+.btn-dark:hover{background:rgba(255,255,255,.08)}
+
+.menu-btn{
+display:none;
+border:0;
+background:none;
+width:35px;
+height:35px;
+cursor:pointer
+}
+
+.menu-btn span{
+display:block;
+height:1px;
+background:#fff;
+margin:6px
+}
+
+.container{
+width:min(calc(100% - 40px),var(--max));
+margin:auto
+}
+
+section{position:relative}
+
+.hero{
+min-height:900px;
+display:flex;
+align-items:center;
+overflow:hidden;
+padding-top:90px
+}
+
+.hero-bg{
+position:absolute;
+inset:0;
+background:
+radial-gradient(circle at 72% 42%,rgba(70,100,255,.18),transparent 27%),
+radial-gradient(circle at 28% 65%,rgba(135,70,255,.1),transparent 27%)
+}
+
+.grid{
+position:absolute;
+inset:0;
+opacity:.14;
+background-image:
+linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
+linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+background-size:75px 75px;
+mask-image:linear-gradient(to bottom,#000,transparent)
+}
+
+.hero-content{
+position:relative;
+z-index:5;
+width:58%
+}
+
+.eyebrow{
+display:inline-flex;
+align-items:center;
+gap:8px;
+padding:8px 12px;
+border:1px solid rgba(110,140,255,.2);
+border-radius:100px;
+background:rgba(80,100,220,.07);
+font-size:10px;
+font-weight:700;
+letter-spacing:.15em;
+text-transform:uppercase;
+color:#aab8e8;
+margin-bottom:25px
+}
+
+.eyebrow i{
+width:6px;
+height:6px;
+border-radius:50%;
+background:var(--cyan);
+box-shadow:0 0 14px var(--cyan)
+}
+
+.hero h1{
+font-size:clamp(55px,7.5vw,96px);
+line-height:.94;
+letter-spacing:-.07em;
+font-weight:800
+}
+
+.gradient{
+background:linear-gradient(105deg,#fff 10%,#a1afff 55%,#6cecff);
+-webkit-background-clip:text;
+background-clip:text;
+color:transparent
+}
+
+.hero-desc{
+max-width:570px;
+margin:27px 0 31px;
+color:#939bad;
+font-size:15px;
+line-height:1.8
+}
+
+.hero-actions{
+display:flex;
+gap:12px;
+flex-wrap:wrap
+}
+
+.trust{
+display:flex;
+align-items:center;
+gap:12px;
+margin-top:34px;
+color:#697286;
+font-size:10px
+}
+
+.trust-icons{display:flex}
+.trust-icons i{
+width:22px;
+height:22px;
+border-radius:50%;
+border:2px solid #07090e;
+margin-left:-6px;
+background:linear-gradient(135deg,#33436d,#8a6eff)
+}
+
+.trust-icons i:nth-child(2){background:linear-gradient(135deg,#164553,#54ddff)}
+.trust-icons i:nth-child(3){background:linear-gradient(135deg,#59204f,#ff79c8)}
+.trust-icons i:nth-child(4){background:linear-gradient(135deg,#3d4626,#c5ef6b)}
+
+.hero-visual{
+position:absolute;
+width:62%;
+height:700px;
+right:-4%;
+top:50%;
+transform:translateY(-44%);
+z-index:2
+}
+
+canvas{display:block}
+
+#heroCanvas{
+width:100%;
+height:100%
+}
+
+.floating-label{
+position:absolute;
+padding:12px 15px;
+border:1px solid var(--line);
+border-radius:13px;
+background:rgba(8,11,18,.62);
+backdrop-filter:blur(15px);
+font-size:9px;
+color:#727c90;
+animation:float 4s ease-in-out infinite
+}
+
+.floating-label strong{
+display:block;
+font-size:12px;
+color:#fff;
+margin-top:3px
+}
+
+.label-one{right:14%;top:28%}
+.label-two{right:6%;top:62%;animation-delay:-2s}
+
+@keyframes float{
+50%{transform:translateY(-9px)}
+}
+
+.logo-strip{
+padding:25px 0;
+border-top:1px solid var(--line);
+border-bottom:1px solid var(--line)
+}
+
+.logo-list{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:30px;
+opacity:.48
+}
+
+.logo-list span{
+font-size:14px;
+font-weight:700;
+letter-spacing:.1em
+}
+
+.section-pad{padding:140px 0}
+
+.section-head{
+display:flex;
+justify-content:space-between;
+align-items:end;
+gap:40px;
+margin-bottom:60px
+}
+
+.kicker{
+font-size:10px;
+font-weight:800;
+letter-spacing:.18em;
+text-transform:uppercase;
+color:#7894ff;
+margin-bottom:15px
+}
+
+.section-title{
+font-size:clamp(38px,5vw,62px);
+line-height:1;
+letter-spacing:-.06em;
+max-width:680px
+}
+
+.section-desc{
+max-width:420px;
+font-size:13px;
+color:#777f91;
+line-height:1.8
+}
+
+.product{
+background:radial-gradient(circle at 50% 45%,rgba(70,100,255,.1),transparent 35%)
+}
+
+.product-stage{
+height:620px;
+position:relative;
+overflow:hidden;
+border:1px solid var(--line);
+border-radius:30px;
+background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.008))
+}
+
+.product-stage:before{
+content:"";
+position:absolute;
+inset:0;
+background-image:
+linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+background-size:60px 60px;
+mask-image:radial-gradient(circle,#000,transparent 75%)
+}
+
+#productCanvas{
+position:absolute;
+inset:0;
+width:100%;
+height:100%
+}
+
+.product-info{
+position:absolute;
+z-index:4;
+top:42px;
+left:42px;
+max-width:320px
+}
+
+.product-info h3{
+font-size:29px;
+letter-spacing:-.04em;
+margin-bottom:12px
+}
+
+.product-info p{
+font-size:12px;
+color:#7d8698;
+line-height:1.8
+}
+
+.badges{
+display:flex;
+flex-wrap:wrap;
+gap:7px;
+margin-top:18px
+}
+
+.badge{
+padding:7px 10px;
+border:1px solid var(--line);
+border-radius:100px;
+font-size:8px;
+color:#aeb9d1
+}
+
+.spec{
+position:absolute;
+z-index:5;
+min-width:125px;
+padding:14px 16px;
+border:1px solid var(--line);
+border-radius:14px;
+background:rgba(7,10,17,.68);
+backdrop-filter:blur(15px);
+box-shadow:0 20px 50px rgba(0,0,0,.25);
+transition:.3s
+}
+
+.spec:hover{
+transform:translateY(-7px);
+border-color:rgba(100,135,255,.4)
+}
+
+.spec small{
+display:block;
+font-size:8px;
+color:#687184;
+letter-spacing:.13em;
+text-transform:uppercase;
+margin-bottom:4px
+}
+
+.spec strong{font-size:15px}
+
+.spec-one{right:11%;top:18%}
+.spec-two{right:6%;top:48%}
+.spec-three{left:10%;bottom:18%}
+.spec-four{right:20%;bottom:9%}
+
+.cards{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:14px
+}
+
+.card{
+padding:27px;
+border:1px solid var(--line);
+border-radius:20px;
+background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.01));
+position:relative;
+overflow:hidden;
+transition:.4s
+}
+
+.card:hover{
+transform:translateY(-8px);
+border-color:rgba(105,135,255,.3);
+box-shadow:0 25px 70px rgba(0,0,0,.25)
+}
+
+.icon{
+width:38px;
+height:38px;
+border:1px solid var(--line);
+border-radius:11px;
+display:grid;
+place-items:center;
+color:#9fb1ff;
+margin-bottom:25px;
+background:rgba(255,255,255,.035)
+}
+
+.card h3{font-size:15px;margin-bottom:9px}
+.card p{font-size:11px;color:#757e90;line-height:1.8}
+
+.stats{
+padding:90px 0;
+border-top:1px solid var(--line);
+border-bottom:1px solid var(--line);
+background:rgba(255,255,255,.012)
+}
+
+.stat-grid{
+display:grid;
+grid-template-columns:repeat(4,1fr)
+}
+
+.stat{
+text-align:center;
+border-right:1px solid var(--line);
+padding:15px
+}
+
+.stat:last-child{border:0}
+
+.stat-number{
+font-size:clamp(34px,4vw,54px);
+font-weight:800;
+letter-spacing:-.06em
+}
+
+.stat-label{
+font-size:10px;
+color:#697285;
+margin-top:5px
+}
+
+.workflow{
+background:radial-gradient(circle at 50% 55%,rgba(80,100,255,.08),transparent 35%)
+}
+
+.workflow-track{
+position:relative;
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:20px
+}
+
+.workflow-line{
+position:absolute;
+left:12%;
+right:12%;
+top:35px;
+height:1px;
+background:linear-gradient(90deg,transparent,#6985ff,#a56cff,#63eaff,transparent);
+box-shadow:0 0 15px rgba(90,130,255,.5);
+transform:scaleX(0);
+transform-origin:left;
+transition:transform 1.3s ease
+}
+
+.workflow.revealed .workflow-line{transform:scaleX(1)}
+
+.step{
+position:relative;
+z-index:2;
+text-align:center
+}
+
+.step-number{
+width:70px;
+height:70px;
+margin:auto;
+display:grid;
+place-items:center;
+border-radius:50%;
+border:1px solid rgba(110,140,255,.28);
+background:#080b13;
+font-size:12px;
+font-weight:700;
+box-shadow:0 0 40px rgba(80,100,255,.1);
+transition:.4s
+}
+
+.step:hover .step-number{
+transform:scale(1.1);
+border-color:#7995ff;
+box-shadow:0 0 50px rgba(90,120,255,.3)
+}
+
+.step h3{font-size:14px;margin:22px 0 8px}
+.step p{font-size:10px;color:#71798b;max-width:190px;margin:auto}
+
+.solutions{background:#07090e}
+
+.solution-grid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:14px
+}
+
+.solution{
+min-height:250px;
+padding:34px;
+border:1px solid var(--line);
+border-radius:22px;
+background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.008));
+position:relative;
+overflow:hidden;
+transition:.4s
+}
+
+.solution:hover{
+transform:translateY(-6px);
+border-color:rgba(100,135,255,.3)
+}
+
+.solution-number{
+position:absolute;
+top:25px;
+right:28px;
+font-size:10px;
+color:#363d4c
+}
+
+.solution h3{
+margin-top:75px;
+font-size:21px;
+letter-spacing:-.03em
+}
+
+.solution p{
+max-width:390px;
+margin-top:10px;
+font-size:11px;
+line-height:1.8;
+color:#737c8e
+}
+
+.solution-glow{
+position:absolute;
+width:230px;
+height:230px;
+border-radius:50%;
+right:-90px;
+bottom:-120px;
+background:rgba(80,110,255,.14);
+filter:blur(55px)
+}
+
+.pricing{
+background:radial-gradient(circle at 50% 35%,rgba(100,80,255,.08),transparent 35%)
+}
+
+.pricing-grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:16px
+}
+
+.price-card{
+position:relative;
+padding:32px;
+border:1px solid var(--line);
+border-radius:22px;
+background:rgba(255,255,255,.02);
+transition:.4s
+}
+
+.price-card:hover{transform:translateY(-7px)}
+
+.price-card.featured{
+border-color:rgba(110,140,255,.5);
+background:linear-gradient(160deg,rgba(80,100,255,.11),rgba(255,255,255,.025));
+box-shadow:0 25px 80px rgba(70,80,190,.15)
+}
+
+.recommended{
+position:absolute;
+right:18px;
+top:18px;
+padding:6px 9px;
+border-radius:100px;
+background:#8097ff;
+color:#080a10;
+font-size:7px;
+font-weight:800;
+text-transform:uppercase;
+letter-spacing:.1em
+}
+
+.price-name{font-size:14px;font-weight:700}
+.price{
+font-size:45px;
+font-weight:800;
+letter-spacing:-.06em;
+margin:20px 0 5px
+}
+
+.price span{
+font-size:10px;
+color:#70798b;
+letter-spacing:0
+}
+
+.custom-price{font-size:37px}
+
+.price-desc{
+font-size:10px;
+color:#70798b
+}
+
+.price-list{
+list-style:none;
+border-top:1px solid var(--line);
+margin:25px 0;
+padding-top:20px
+}
+
+.price-list li{
+font-size:10px;
+color:#aeb4c1;
+margin:13px 0;
+padding-left:17px;
+position:relative
+}
+
+.price-list li:before{
+content:"✓";
+position:absolute;
+left:0;
+color:#829cff
+}
+
+.price-btn{width:100%}
+
+.testimonials{overflow:hidden}
+
+.quote-grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:15px
+}
+
+.quote{
+min-height:230px;
+padding:30px;
+border:1px solid var(--line);
+border-radius:20px;
+background:rgba(255,255,255,.018);
+display:flex;
+flex-direction:column;
+justify-content:space-between;
+transition:.35s
+}
+
+.quote:hover{
+transform:translateY(-6px);
+border-color:rgba(100,135,255,.25)
+}
+
+.quote-text{
+font-size:14px;
+line-height:1.8;
+color:#c3c8d4
+}
+
+.person{
+display:flex;
+align-items:center;
+gap:11px
+}
+
+.avatar{
+width:35px;
+height:35px;
+border-radius:50%;
+display:grid;
+place-items:center;
+font-size:9px;
+font-weight:800;
+background:linear-gradient(135deg,#617cff,#bd6bff)
+}
+
+.person strong{
+display:block;
+font-size:10px
+}
+
+.person span{
+display:block;
+font-size:8px;
+color:#697285;
+margin-top:2px
+}
+
+.final-cta{
+padding:150px 0;
+text-align:center;
+overflow:hidden
+}
+
+.cta-orb{
+position:absolute;
+width:700px;
+height:700px;
+left:50%;
+top:50%;
+transform:translate(-50%,-50%);
+border-radius:50%;
+background:radial-gradient(circle,rgba(70,100,255,.14),transparent 62%)
+}
+
+.final-content{position:relative;z-index:2}
+
+.final-cta h2{
+font-size:clamp(45px,7vw,82px);
+line-height:1;
+letter-spacing:-.065em
+}
+
+.final-cta p{
+max-width:480px;
+margin:25px auto 30px;
+font-size:13px;
+line-height:1.8;
+color:#798294
+}
+
+.footer{
+border-top:1px solid var(--line);
+padding:70px 0 25px
+}
+
+.footer-grid{
+display:grid;
+grid-template-columns:1.5fr 1fr 1fr 1fr;
+gap:40px
+}
+
+.footer-brand p{
+max-width:240px;
+margin-top:17px;
+font-size:10px;
+line-height:1.8;
+color:#687183
+}
+
+.footer h4{
+font-size:9px;
+letter-spacing:.15em;
+text-transform:uppercase;
+margin-bottom:18px
+}
+
+.footer a{
+display:block;
+font-size:10px;
+color:#697284;
+margin:11px 0;
+transition:.2s
+}
+
+.footer a:hover{color:#fff}
+
+.socials{
+display:flex;
+gap:7px;
+margin-top:20px
+}
+
+.social{
+width:30px;
+height:30px;
+border:1px solid var(--line);
+border-radius:9px;
+display:grid!important;
+place-items:center;
+margin:0!important
+}
+
+.footer-bottom{
+display:flex;
+justify-content:space-between;
+border-top:1px solid var(--line);
+margin-top:55px;
+padding-top:20px;
+font-size:8px;
+color:#4d5564
+}
+
+.reveal{
+opacity:0;
+transform:translateY(35px);
+transition:opacity .8s ease,transform .8s ease
+}
+
+.reveal.visible{
+opacity:1;
+transform:none
+}
+
+#top{
+position:fixed;
+right:24px;
+bottom:24px;
+width:42px;
+height:42px;
+border:1px solid var(--line);
+border-radius:12px;
+background:rgba(7,9,15,.82);
+backdrop-filter:blur(15px);
+color:#fff;
+z-index:90;
+cursor:pointer;
+opacity:0;
+visibility:hidden;
+transform:translateY(15px);
+transition:.3s
+}
+
+#top.show{
+opacity:1;
+visibility:visible;
+transform:none
+}
+
+@media(max-width:900px){
+.nav-links{
+display:none;
+position:absolute;
+top:75px;
+left:0;
+right:0;
+padding:20px;
+background:rgba(6,8,13,.97);
+border:1px solid var(--line);
+border-radius:16px;
+flex-direction:column;
+gap:20px
+}
+
+.nav-links.open{display:flex}
+.menu-btn{display:block}
+.nav-cta{display:none}
+
+.hero{min-height:850px}
+.hero-content{width:100%}
+.hero-visual{
+width:100%;
+right:-18%;
+top:58%;
+opacity:.75
+}
+
+.cards{grid-template-columns:repeat(2,1fr)}
+.stat-grid{grid-template-columns:repeat(2,1fr)}
+.stat:nth-child(2){border-right:0}
+.stat:nth-child(-n+2){border-bottom:1px solid var(--line)}
+.workflow-track{grid-template-columns:repeat(2,1fr);gap:45px}
+.workflow-line{display:none}
+.solution-grid{grid-template-columns:1fr}
+.pricing-grid{grid-template-columns:1fr}
+.quote-grid{grid-template-columns:1fr}
+.footer-grid{grid-template-columns:1.5fr 1fr 1fr}
+}
+
+@media(max-width:600px){
+.announcement{font-size:8px}
+.nav{
+top:38px;
+width:calc(100% - 18px)
+}
+
+.nav-inner{height:58px;padding:0 15px}
+.hero{
+min-height:800px;
+padding-top:80px
+}
+
+.hero h1{font-size:51px}
+.hero-desc{font-size:12px}
+.hero-visual{
+width:135%;
+height:430px;
+right:-34%;
+top:62%
+}
+
+.floating-label{display:none}
+
+.container{width:calc(100% - 28px)}
+.logo-list{
+justify-content:flex-start;
+overflow:hidden;
+white-space:nowrap;
+gap:35px
+}
+
+.logo-list span{font-size:10px}
+.section-pad{padding:95px 0}
+.section-head{
+display:block;
+margin-bottom:40px
+}
+
+.section-desc{margin-top:20px}
+
+.product-stage{height:510px}
+.product-info{
+left:22px;
+top:24px;
+max-width:220px
+}
+
+.product-info h3{font-size:23px}
+
+.spec{
+transform:scale(.82)
+}
+
+.spec-one{right:-4%;top:20%}
+.spec-two{right:-5%;top:50%}
+.spec-three{left:-4%;bottom:17%}
+.spec-four{right:6%;bottom:5%}
+
+.cards{grid-template-columns:1fr}
+.stat-grid{grid-template-columns:1fr 1fr}
+.stat{
+padding:18px 8px;
+border-right:1px solid var(--line)!important;
+border-bottom:1px solid var(--line)!important
+}
+
+.stat:nth-child(2n){border-right:0!important}
+.stat:nth-last-child(-n+2){border-bottom:0!important}
+
+.stat-number{font-size:29px}
+.workflow-track{grid-template-columns:1fr 1fr;gap:35px 10px}
+.step-number{width:55px;height:55px}
+.solution{min-height:210px;padding:25px}
+.solution h3{font-size:18px}
+.price{font-size:40px}
+.footer-grid{grid-template-columns:1fr 1fr}
+.footer-brand{grid-column:1/-1}
+.footer-bottom{display:block;line-height:2}
+}
+</style>
+</head>
+
+<body class="loading">
+
+<div id="loader">
+<div class="loader-content">
+<div class="loader-logo">NEXORA</div>
+<div class="loader-line"><div class="loader-progress"></div></div>
+<div class="loader-sub">INITIALIZING INTELLIGENCE</div>
+</div>
+</div>
+
+<div class="announcement">NEXORA 2.0 is now live <strong>→ Explore the new platform</strong></div>
+
+<nav class="nav" id="nav">
+<div class="nav-inner">
+<a href="#home" class="logo"><i class="logo-mark"></i>NEXORA</a>
+
+<div class="nav-links" id="navLinks">
+<a href="#home" class="active">Home</a>
+<a href="#technology">Technology</a>
+<a href="#features">Features</a>
+<a href="#solutions">Solutions</a>
+<a href="#pricing">Pricing</a>
+</div>
+
+<a href="#pricing" class="btn btn-primary nav-cta magnetic">Get Started</a>
+
+<button class="menu-btn" id="menuBtn">
+<span></span>
+<span></span>
+</button>
+</div>
+</nav>
+
+<main>
+
+<section class="hero" id="home">
+<div class="hero-bg"></div>
+<div class="grid"></div>
+
+<div class="container">
+<div class="hero-content">
+<div class="eyebrow"><i></i> Intelligent infrastructure for what comes next</div>
+
+<h1>Build What <span class="gradient">Comes Next.</span></h1>
+
+<p class="hero-desc">
+NEXORA gives modern teams an intelligent foundation to design, automate and scale the systems that power tomorrow.
+</p>
+
+<div class="hero-actions">
+<a href="#pricing" class="btn btn-primary magnetic">Start Building ↗</a>
+<a href="#technology" class="btn btn-dark">Explore Technology ↓</a>
+</div>
+
+<div class="trust">
+<div class="trust-icons"><i></i><i></i><i></i><i></i></div>
+<span>Trusted by 12,000+ modern teams</span>
+</div>
+</div>
+</div>
+
+<div class="hero-visual">
+<canvas id="heroCanvas"></canvas>
+<div class="floating-label label-one">NEXORA CORE<strong>Neural Engine</strong></div>
+<div class="floating-label label-two">LIVE STATUS<strong>All systems optimal</strong></div>
+</div>
+</section>
+
+<div class="logo-strip">
+<div class="container">
+<div class="logo-list">
+<span>VERTEX</span>
+<span>orbit</span>
+<span>HELIX</span>
+<span>NovaWorks</span>
+<span>QUANTIX</span>
+<span>FLUX</span>
+</div>
+</div>
+</div>
+
+<section class="product section-pad" id="technology">
+<div class="container">
+<div class="section-head reveal">
+<div>
+<div class="kicker">The Platform</div>
+<h2 class="section-title">Intelligence at the speed of thought.</h2>
+</div>
+<p class="section-desc">Nexora Core combines adaptive compute, real-time orchestration and autonomous intelligence in one elegant foundation.</p>
+</div>
+
+<div class="product-stage reveal">
+<div class="product-info">
+<h3>Nexora Core</h3>
+<p>A next-generation intelligence engine engineered for demanding workloads and always-on operations.</p>
+<div class="badges">
+<span class="badge">Neural Compute</span>
+<span class="badge">Low Latency</span>
+<span class="badge">Secure by Design</span>
+</div>
+</div>
+
+<canvas id="productCanvas"></canvas>
+
+<div class="spec spec-one"><small>Processing</small><strong>480 TOPS</strong></div>
+<div class="spec spec-two"><small>Latency</small><strong>2.4 ms</strong></div>
+<div class="spec spec-three"><small>Efficiency</small><strong>91%</strong></div>
+<div class="spec spec-four"><small>Availability</small><strong>99.99%</strong></div>
+</div>
+</div>
+</section>
+
+<section class="section-pad" id="features">
+<div class="container">
+<div class="section-head reveal">
+<div>
+<div class="kicker">Why NEXORA</div>
+<h2 class="section-title">Built for the intelligent era.</h2>
+</div>
+<p class="section-desc">Every layer is designed to make complex technology feel effortless, responsive and ready for scale.</p>
+</div>
+
+<div class="cards">
+<div class="card reveal"><div class="icon">✦</div><h3>Adaptive Intelligence</h3><p>Systems continuously learn from context and adapt their behavior as your business evolves.</p></div>
+<div class="card reveal"><div class="icon">◉</div><h3>Real-Time Processing</h3><p>Process high-volume workloads with ultra-low latency and instant operational feedback.</p></div>
+<div class="card reveal"><div class="icon">⌁</div><h3>Autonomous Workflows</h3><p>Turn repeatable processes into intelligent workflows that execute, monitor and optimize themselves.</p></div>
+<div class="card reveal"><div class="icon">◇</div><h3>Enterprise Security</h3><p>Security controls, isolation and observability are built into the platform from the foundation up.</p></div>
+</div>
+</div>
+</section>
+
+<section class="stats">
+<div class="container">
+<div class="stat-grid">
+<div class="stat reveal"><div class="stat-number" data-value="12000" data-suffix="K+">0</div><div class="stat-label">Active Teams</div></div>
+<div class="stat reveal"><div class="stat-number" data-value="98.7" data-decimal="1" data-suffix="%">0</div><div class="stat-label">Customer Satisfaction</div></div>
+<div class="stat reveal"><div class="stat-number" data-value="4.8" data-decimal="1" data-suffix="B">0</div><div class="stat-label">Tasks Processed</div></div>
+<div class="stat reveal"><div class="stat-number" data-value="99.99" data-decimal="2" data-suffix="%">0</div><div class="stat-label">Platform Uptime</div></div>
+</div>
+</div>
+</section>
+
+<section class="workflow section-pad" id="workflow">
+<div class="container">
+<div class="section-head reveal">
+<div>
+<div class="kicker">The Workflow</div>
+<h2 class="section-title">From Idea to Execution.</h2>
+</div>
+<p class="section-desc">A seamless path from the first signal to a system that operates at scale.</p>
+</div>
+
+<div class="workflow-track reveal">
+<div class="workflow-line"></div>
+
+<div class="step">
+<div class="step-number">01</div>
+<h3>Discover</h3>
+<p>Understand signals, goals and opportunities across your organization.</p>
+</div>
+
+<div class="step">
+<div class="step-number">02</div>
+<h3>Design</h3>
+<p>Shape intelligent experiences with powerful visual building blocks.</p>
+</div>
+
+<div class="step">
+<div class="step-number">03</div>
+<h3>Automate</h3>
+<p>Connect systems and let autonomous workflows execute the work.</p>
+</div>
+
+<div class="step">
+<div class="step-number">04</div>
+<h3>Scale</h3>
+<p>Expand confidently with resilient infrastructure and observability.</p>
+</div>
+</div>
+</div>
+</section>
+
+<section class="solutions section-pad" id="solutions">
+<div class="container">
+<div class="section-head reveal">
+<div>
+<div class="kicker">Solutions</div>
+<h2 class="section-title">One platform. Infinite possibilities.</h2>
+</div>
+<p class="section-desc">NEXORA adapts to the way your team works, from infrastructure to product intelligence.</p>
+</div>
+
+<div class="solution-grid">
+<div class="solution reveal"><span class="solution-number">01</span><h3>AI Infrastructure</h3><p>Deploy reliable intelligence foundations without rebuilding your stack from the ground up.</p><div class="solution-glow"></div></div>
+<div class="solution reveal"><span class="solution-number">02</span><h3>Intelligent Automation</h3><p>Transform repetitive operations into adaptive systems that keep moving without constant supervision.</p><div class="solution-glow"></div></div>
+<div class="solution reveal"><span class="solution-number">03</span><h3>Data Intelligence</h3><p>Turn fragmented information into real-time signals your teams can understand and act on.</p><div class="solution-glow"></div></div>
+<div class="solution reveal"><span class="solution-number">04</span><h3>Developer Platform</h3><p>Give builders the APIs, tools and runtime they need to create intelligent products faster.</p><div class="solution-glow"></div></div>
+</div>
+</div>
+</section>
+
+<section class="pricing section-pad" id="pricing">
+<div class="container">
+<div class="section-head reveal">
+<div>
+<div class="kicker">Simple Pricing</div>
+<h2 class="section-title">Start small. Scale without limits.</h2>
+</div>
+<p class="section-desc">Flexible plans designed around how modern teams actually build.</p>
+</div>
+
+<div class="pricing-grid">
+
+<div class="price-card reveal">
+<div class="price-name">Starter</div>
+<div class="price">$19<span>/month</span></div>
+<div class="price-desc">For individuals and small teams.</div>
+<ul class="price-list">
+<li>5 projects</li>
+<li>50K tasks</li>
+<li>Basic analytics</li>
+<li>Community support</li>
+</ul>
+<a href="#home" class="btn btn-dark price-btn">Start with Starter</a>
+</div>
+
+<div class="price-card featured reveal">
+<div class="recommended">Recommended</div>
+<div class="price-name">Scale</div>
+<div class="price">$79<span>/month</span></div>
+<div class="price-desc">For teams ready to move faster.</div>
+<ul class="price-list">
+<li>Unlimited projects</li>
+<li>2M tasks</li>
+<li>Advanced analytics</li>
+<li>Priority support</li>
+<li>AI automation</li>
+</ul>
+<a href="#home" class="btn btn-primary price-btn">Start Building</a>
+</div>
+
+<div class="price-card reveal">
+<div class="price-name">Enterprise</div>
+<div class="price custom-price">Custom</div>
+<div class="price-desc">For organizations operating at scale.</div>
+<ul class="price-list">
+<li>Unlimited usage</li>
+<li>Dedicated infrastructure</li>
+<li>Advanced security</li>
+<li>Custom integrations</li>
+<li>24/7 support</li>
+</ul>
+<a href="mailto:hello@nexora.ai" class="btn btn-dark price-btn">Talk to Sales</a>
+</div>
+
+</div>
+</div>
+</section>
+
+<section class="testimonials section-pad">
+<div class="container">
+<div class="section-head reveal">
+<div>
+<div class="kicker">Customer Stories</div>
+<h2 class="section-title">Built with NEXORA.</h2>
+</div>
+<p class="section-desc">Thousands of ambitious teams are building their next chapter on NEXORA.</p>
+</div>
+
+<div class="quote-grid">
+<div class="quote reveal">
+<div class="quote-text">“NEXORA completely changed how our team builds and deploys intelligent workflows.”</div>
+<div class="person"><div class="avatar">MC</div><div><strong>Maya Chen</strong><span>CTO at Vertex Labs</span></div></div>
+</div>
+
+<div class="quote reveal">
+<div class="quote-text">“We reduced repetitive operations by more than 70% within the first month.”</div>
+<div class="person"><div class="avatar">DC</div><div><strong>Daniel Carter</strong><span>Product Lead at Orbit Systems</span></div></div>
+</div>
+
+<div class="quote reveal">
+<div class="quote-text">“The combination of speed, design and intelligence is exceptional.”</div>
+<div class="person"><div class="avatar">SM</div><div><strong>Sofia Martinez</strong><span>Founder at Helix AI</span></div></div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="final-cta">
+<div class="cta-orb"></div>
+<div class="container final-content reveal">
+<div class="kicker">Ready when you are</div>
+<h2>The Future Is Already <span class="gradient">Building.</span></h2>
+<p>Join thousands of teams using NEXORA to turn ambitious ideas into intelligent systems that scale.</p>
+<a href="#pricing" class="btn btn-primary magnetic">Start Building Free ↗</a>
+</div>
+</section>
+
+</main>
+
+<footer class="footer">
+<div class="container">
+<div class="footer-grid">
+
+<div class="footer-brand">
+<a href="#home" class="logo"><i class="logo-mark"></i>NEXORA</a>
+<p>Intelligent infrastructure for teams building what comes next.</p>
+<div class="socials">
+<a href="https://x.com" target="_blank" class="social">𝕏</a>
+<a href="https://linkedin.com" target="_blank" class="social">in</a>
+<a href="https://github.com" target="_blank" class="social">⌘</a>
+</div>
+</div>
+
+<div>
+<h4>Product</h4>
+<a href="#technology">Nexora Core</a>
+<a href="#features">Features</a>
+<a href="#pricing">Pricing</a>
+<a href="#solutions">Integrations</a>
+</div>
+
+<div>
+<h4>Company</h4>
+<a href="#home">About</a>
+<a href="#home">Careers</a>
+<a href="#home">Customers</a>
+<a href="mailto:hello@nexora.ai">Contact</a>
+</div>
+
+<div>
+<h4>Resources</h4>
+<a href="#home">Documentation</a>
+<a href="#home">API Reference</a>
+<a href="#home">Security</a>
+<a href="mailto:hello@nexora.ai">hello@nexora.ai</a>
+</div>
+
+</div>
+
+<div class="footer-bottom">
+<span>© 2026 NEXORA Technologies. All rights reserved.</span>
+<span>Designed for the next generation.</span>
+</div>
+</div>
+</footer>
+
+<button id="top">↑</button>
+
+<script>
+(function(){
+
+"use strict";
+
+const $=selector=>document.querySelector(selector);
+const $$=selector=>Array.from(document.querySelectorAll(selector));
+
+window.addEventListener("load",function(){
+setTimeout(function(){
+const loader=$("#loader");
+if(loader)loader.classList.add("hide");
+document.body.classList.remove("loading");
+},1500);
+});
+
+const nav=$("#nav");
+const topButton=$("#top");
+
+window.addEventListener("scroll",function(){
+if(nav)nav.classList.toggle("scrolled",window.scrollY>40);
+if(topButton)topButton.classList.toggle("show",window.scrollY>600);
+});
+
+if(topButton){
+topButton.addEventListener("click",function(){
+window.scrollTo({top:0,behavior:"smooth"});
+});
+}
+
+const menuButton=$("#menuBtn");
+const navLinks=$("#navLinks");
+
+if(menuButton&&navLinks){
+menuButton.addEventListener("click",function(){
+navLinks.classList.toggle("open");
+});
+
+navLinks.querySelectorAll("a").forEach(function(link){
+link.addEventListener("click",function(){
+navLinks.classList.remove("open");
+});
+});
+}
+
+const sectionElements=$$("section[id]");
+const navigationLinks=$$(".nav-links a");
+
+function updateNavigation(){
+let current="home";
+
+sectionElements.forEach(function(section){
+const top=section.offsetTop-220;
+if(window.scrollY>=top)current=section.id;
+});
+
+navigationLinks.forEach(function(link){
+link.classList.toggle("active",link.getAttribute("href")==="#"+current);
+});
+}
+
+window.addEventListener("scroll",updateNavigation);
+updateNavigation();
+
+const revealObserver=new IntersectionObserver(function(entries,observer){
+entries.forEach(function(entry){
+if(!entry.isIntersecting)return;
+
+entry.target.classList.add("visible");
+
+if(entry.target.id==="workflow"){
+entry.target.classList.add("revealed");
+}
+
+const stat=entry.target.querySelector(".stat-number");
+
+if(stat&&!stat.dataset.animated){
+animateCounter(stat);
+}
+
+observer.unobserve(entry.target);
+});
+},{threshold:.12});
+
+$$(".reveal").forEach(function(element){
+revealObserver.observe(element);
+});
+
+function animateCounter(element){
+if(element.dataset.animated)return;
+
+element.dataset.animated="true";
+
+const target=Number(element.dataset.value);
+const decimal=Number(element.dataset.decimal||0);
+const suffix=element.dataset.suffix||"";
+const duration=1600;
+const start=performance.now();
+
+function update(now){
+const progress=Math.min((now-start)/duration,1);
+const eased=1-Math.pow(1-progress,4);
+const value=target*eased;
+
+element.textContent=value.toFixed(decimal)+suffix;
+
+if(progress<1){
+requestAnimationFrame(update);
+}else{
+element.textContent=target.toFixed(decimal)+suffix;
+}
+}
+
+requestAnimationFrame(update);
+}
+
+$$(".magnetic").forEach(function(button){
+
+button.addEventListener("pointermove",function(event){
+const rect=button.getBoundingClientRect();
+const x=event.clientX-rect.left-rect.width/2;
+const y=event.clientY-rect.top-rect.height/2;
+
+button.style.transform="translate("+x*.12+"px,"+y*.12+"px)";
+});
+
+button.addEventListener("pointerleave",function(){
+button.style.transform="";
+});
+});
+
+function setupScene(canvas,product){
+
+if(!canvas||!window.THREE)return;
+
+const scene=new THREE.Scene();
+
+const camera=new THREE.PerspectiveCamera(
+product?40:42,
+1,
+0.1,
+100
+);
+
+camera.position.set(0,0,product?7.5:7);
+
+let renderer;
+
+try{
+renderer=new THREE.WebGLRenderer({
+canvas:canvas,
+alpha:true,
+antialias:true,
+powerPreference:"high-performance"
+});
+}catch(error){
+return;
+}
+
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
+renderer.outputEncoding=THREE.sRGBEncoding;
+
+const root=new THREE.Group();
+scene.add(root);
+
+let core;
+let wire;
+
+if(product){
+
+core=new THREE.Mesh(
+new THREE.DodecahedronGeometry(1.45,2),
+new THREE.MeshPhysicalMaterial({
+color:0x182650,
+metalness:.82,
+roughness:.15,
+emissive:0x101e5d,
+emissiveIntensity:1.2
+})
+);
+
+wire=new THREE.Mesh(
+new THREE.IcosahedronGeometry(1.65,2),
+new THREE.MeshBasicMaterial({
+color:0x7594ff,
+wireframe:true,
+transparent:true,
+opacity:.23
+})
+);
+
+root.add(core);
+root.add(wire);
+
+const inner=new THREE.Mesh(
+new THREE.IcosahedronGeometry(1.08,3),
+new THREE.MeshPhysicalMaterial({
+color:0x173b91,
+metalness:.35,
+roughness:.08,
+emissive:0x254fff,
+emissiveIntensity:1.8,
+transparent:true,
+opacity:.72
+})
+);
+
+root.add(inner);
+
+for(let i=0;i<3;i++){
+const ring=new THREE.Mesh(
+new THREE.TorusGeometry(1.9+i*.22,.012,8,160),
+new THREE.MeshBasicMaterial({
+color:i===1?0xa06cff:0x62eaff,
+transparent:true,
+opacity:.55
+})
+);
+
+ring.rotation.x=i*.75;
+ring.rotation.y=i*.55;
+root.add(ring);
+}
+
+}else{
+
+core=new THREE.Mesh(
+new THREE.IcosahedronGeometry(1.45,5),
+new THREE.MeshPhysicalMaterial({
+color:0x182650,
+metalness:.65,
+roughness:.16,
+emissive:0x111f65,
+emissiveIntensity:1.4,
+transparent:true,
+opacity:.94
+})
+);
+
+wire=new THREE.Mesh(
+new THREE.IcosahedronGeometry(1.62,2),
+new THREE.MeshBasicMaterial({
+color:0x7697ff,
+wireframe:true,
+transparent:true,
+opacity:.22
+})
+);
+
+root.add(core);
+root.add(wire);
+
+for(let i=0;i<3;i++){
+const ring=new THREE.Mesh(
+new THREE.TorusGeometry(2.0+i*.05,.012,8,160),
+new THREE.MeshBasicMaterial({
+color:i===1?0xa06cff:0x62eaff,
+transparent:true,
+opacity:.58
+})
+);
+
+ring.rotation.x=i*.65;
+ring.rotation.y=i*.4;
+root.add(ring);
+}
+
+}
+
+const particleCount=product?450:750;
+const particlePositions=new Float32Array(particleCount*3);
+
+for(let i=0;i<particleCount;i++){
+
+const radius=(product?2.0:2.2)+Math.random()*(product?2.0:2.7);
+const theta=Math.random()*Math.PI*2;
+const phi=Math.acos(2*Math.random()-1);
+
+particlePositions[i*3]=radius*Math.sin(phi)*Math.cos(theta);
+particlePositions[i*3+1]=radius*Math.cos(phi);
+particlePositions[i*3+2]=radius*Math.sin(phi)*Math.sin(theta);
+}
+
+const particleGeometry=new THREE.BufferGeometry();
+
+particleGeometry.setAttribute(
+"position",
+new THREE.BufferAttribute(particlePositions,3)
+);
+
+const particles=new THREE.Points(
+particleGeometry,
+new THREE.PointsMaterial({
+color:0x7c9aff,
+size:product?.018:.019,
+transparent:true,
+opacity:.6,
+blending:THREE.AdditiveBlending
+})
+);
+
+scene.add(particles);
+
+scene.add(new THREE.AmbientLight(0x6675a5,1.4));
+
+const blueLight=new THREE.PointLight(0x557aff,10,15);
+blueLight.position.set(4,3,5);
+scene.add(blueLight);
+
+const cyanLight=new THREE.PointLight(0x55e8ff,8,14);
+cyanLight.position.set(-4,-2,3);
+scene.add(cyanLight);
+
+const purpleLight=new THREE.PointLight(0xa15cff,8,14);
+purpleLight.position.set(0,-4,-4);
+scene.add(purpleLight);
+
+let pointerX=0;
+let pointerY=0;
+let targetX=0;
+let targetY=0;
+
+canvas.addEventListener("pointermove",function(event){
+
+const rect=canvas.getBoundingClientRect();
+
+pointerX=(event.clientX-rect.left)/rect.width-.5;
+pointerY=(event.clientY-rect.top)/rect.height-.5;
+
+targetX=pointerX*.45;
+targetY=pointerY*.3;
+});
+
+canvas.addEventListener("pointerleave",function(){
+targetX=0;
+targetY=0;
+});
+
+function resize(){
+
+const width=canvas.clientWidth;
+const height=canvas.clientHeight;
+
+if(width<=0||height<=0)return;
+
+renderer.setSize(width,height,false);
+
+camera.aspect=width/height;
+camera.updateProjectionMatrix();
+}
+
+window.addEventListener("resize",resize);
+
+resize();
+
+let animationId=0;
+
+function animate(time){
+
+animationId=requestAnimationFrame(animate);
+
+root.rotation.y+=product?.003:.0025;
+root.rotation.x+=(targetY-root.rotation.x)*.025;
+
+const targetRotation=targetX+(product?.25:0);
+
+root.rotation.y+=(targetRotation-root.rotation.y)*.008;
+
+wire.rotation.y-=product?.002:.0015;
+particles.rotation.y+=product?.0003:.00025;
+
+if(core){
+const pulse=1+Math.sin(time*.0015)*.018;
+core.scale.setScalar(pulse);
+}
+
+renderer.render(scene,camera);
+}
+
+animate(0);
+}
+
+setupScene($("#heroCanvas"),false);
+setupScene($("#productCanvas"),true);
+
+})();
+</script>
+
+</body>
+</html>
